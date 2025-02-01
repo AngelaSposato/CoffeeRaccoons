@@ -1,5 +1,7 @@
-from dash import html, register_page
-from components import map_component
+from dash import html, register_page, Output, Input, callback
+import pandas as pd
+from pages.components import map_component
+from app import collection
 
 register_page(
     __name__,
