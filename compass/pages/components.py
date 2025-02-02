@@ -106,8 +106,9 @@ listing_form = dmc.Fieldset(
     radius="md",
 )
 
+# TODO: Change how we display the data
 data_display = dmc.Container([dmc.Textarea(id="data_display", readOnly=True)], mt=20, mb=20)
 
 layout = dmc.MantineProvider(
-    id="mantine-provider", forceColorScheme="light", children=[button, map_component, listing_form, data_display]
+    id="mantine-provider", forceColorScheme="light", children=[button, map_component, listing_form]
 )

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import dash_leaflet.express as dlx
 from dash_extensions.javascript import assign
 from datetime import datetime
+import pymongo.database
 from pytz import timezone
 
 load_dotenv()
@@ -25,7 +26,7 @@ def create_db_client():
     return client
 
 
-def get_db(db_name):
+def get_db(db_name: str):
     client = create_db_client()
     db = client[db_name]
     return db
@@ -42,11 +43,16 @@ def get_geo_data(data):
     for item in data:
         place = dict(
             name=item["place_name"],
+            desc=item["description"],
+            url=item["website"],
+            rating=item["rating"],
+            category=item["category"],
             lon=item["location"]["coordinates"][0],
             lat=item["location"]["coordinates"][1],
         )
         places.append(place)
 
+    # geojson = dlx.dicts_to_geojson([{**c, **dict(popup="{0}/n{1}/n{2}".format(c["name"], c["rating"], c["desc"]))} for c in places])
     geojson = dlx.dicts_to_geojson([{**c, **dict(popup=c["name"])} for c in places])
     return geojson
 
@@ -59,26 +65,34 @@ def get_pin_icon():
         }"""
     )
 
+def get_one_listing(db, id):
+    collection = db.listing_data
+    listing = collection.find_one({"_id": id})
+    places = [listing]
+    geojson = dlx.dicts_to_geojson([{**c, **dict(popup=c["name"])} for c in places])
+    return geojson
 
 def create_listing(db, place_name: str, address: str, latitude: float, longitude: float, description: str, category: str, rating: float, website:str):
-    timestamp = get_timestamp()
+    current_date = datetime.now()
+
     item = {
         "place_name": place_name,
         "address": address,
         "latitude": latitude,
         "longitude": longitude,
         "description": description,
-        "creation_date": timestamp,
+        "creation_date": current_date,
         "category": category,
         "rating": rating,
         "website": website,
         "location": {"type": "Point", "coordinates": [longitude, latitude]},
     }
+    
     result = db.listing_data.insert_one(item)
     id = result.inserted_id
     return id
     
 
-# if __name__ == "__main__":
-#     t = get_timestamp()
-#     print(t)
+if __name__ == "__main__":
+    t = datetime.now()
+    print(t)
